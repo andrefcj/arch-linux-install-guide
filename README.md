@@ -1,15 +1,22 @@
-# arch-linux-install-guide
-Arch Linux Install Guide
+# Arch Linux Install Guide
 
+Set your keyboard layout:
+
+```
 loadkeys br-abnt2
+```
 
-Se as letras estiverem pequenas:
+If the fonts are small:
 
+```
 setfont ter-132b
+```
 
-Habilitar os downloads paralelos no Pacman:
+Enable parallel downloads on Pacman:
 
+```
 vim /etc/pacman.conf
+```
 
 Verificar conexão com a internet:
 
