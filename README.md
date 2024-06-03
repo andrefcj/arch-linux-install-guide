@@ -62,9 +62,9 @@ Only format the EFI system partition if you created it during the partitioning s
 Example:
 
 ```
-/mnt/boot or mnt/efi 	/dev/sda1 	EFI System Partition 	  260MB - 512MB               fat32
-/mnt                  /dev/sda2 	Linux x86-64 root (/) 	Remainder of the device 	  ext4
-SWAP                  /dev/sda3 	Linux swap 	            1G 	                        ext4
+/mnt/efi      /dev/sda1   EFI System Partition    260MB - 512MB               fat32
+/mnt          /dev/sda2   Linux x86-64 root (/)   Remainder of the device     ext4
+SWAP          /dev/sda3   Linux swap              1G                          ext4
 ```
 
 Format the partitions:
