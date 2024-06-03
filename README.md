@@ -1,211 +1,230 @@
 # Arch Linux Install Guide
 
 Set your keyboard layout:
-
 ```
 loadkeys br-abnt2
 ```
 
 If the fonts are small:
-
 ```
 setfont ter-132b
 ```
 
-Enable parallel downloads on Pacman:
-
+Check connection:
 ```
-vim /etc/pacman.conf
-```
-
-Verificar conexão com a internet:
-
 ping -c 3 google.com
+```
 
-WIFI:
-
-O professor Juliano Ramos recomenda rodar o comando abaixo:
-
+Connect with wifi-menu:
+```
 wifi-menu
+```
 
-Se estiver instalando em um notebook, para conectar via wi-fi:
-
-Listar dispositivos:
+Or iwctl:
+```
 iwctl
 
+# List the devices:
 device list
 
-Substitua wlan0 pelo seu dispositivo:
+# Replace wlan0 by your device:
 station wlan0 scan
 
-No meu caso disse que não havia station para o wlan0. Eu tive que rodar o comando abaixo (fonte: https://unix.stackexchange.com/questions/632443/wifi-device-not-showing-up-while-setting-up-arch-linux):
+# No meu caso disse que não havia station para o wlan0. Eu tive que rodar o comando abaixo (fonte: https://unix.stackexchange.com/questions/632443/wifi-device-not-showing-up-while-setting-up-arch-linux):
+# phy0 is the adapter from "device list" command
 
 adapter phy0 set-property Powered on
 
-Onde phy0 é o Adapter mostrado no comando device list.
-
+# Show networks available:
 station wlan0 get-networks
 
+# Network connection:
 station wlan0 connect nome_da_rede
+```
 
-
-Verificar se o relógio do sistema está certo:
-
+Check the date:
+```
 timedatectl
+```
 
-Ver os dispostivos de bloco:
+Show block devices:
+```
+lsblk or fdisk -l
+```
 
-lsblk ou fdisk -l
-
-Particionar:
-
+Partition the disks:
+```
 cfdisk /dev/sda
+```
 
-Selecionar gpt
+Only format the EFI system partition if you created it during the partitioning step. If there already was an EFI system partition on disk beforehand, reformatting it can destroy the boot loaders of other installed operating systems.
 
-Se o disco do qual você deseja inicializar já tiver uma partição de sistema EFI, não crie outra, apenas use a partição existente.
+Example:
 
-mkfs.fat -F32 /dev/partição_de_sistema_efi (sda1)
-mkfs.ext4 /dev/partição_raiz (sda2)
-mkswap /dev/partição_swap (sda3)
+```
+/mnt/boot or mnt/efi 	/dev/sda1 	EFI System Partition 	  260MB - 512MB               fat32
+/mnt                  /dev/sda2 	Linux x86-64 root (/) 	Remainder of the device 	  ext4
+SWAP                  /dev/sda3 	Linux swap 	            1G 	                        ext4
+```
+
+Format the partitions:
+```
+mkfs.fat -F32 /dev/sda1
+mkfs.ext4 /dev/sda2
+mkswap /dev/sda3
 swapon /dev/sda3
+```
 
-Sugestão de particionamento:
+Create the efi directory:
+```
+mkdir /mnt/efi
+```
 
-/mnt/boot or mnt/efi 	/dev/sda1 	EFI System Partition 	260MB - 512MB               fat32
-/mnt                    /dev/sda2 	Linux x86-64 root (/) 	Remainder of the device 	ext4
-[SWAP]                  /dev/sda3 	Linux swap 	            1G 	                        ext4
-
-Montar a partição:
-
+Mount the partitions:
+```
 mount /dev/sda2 /mnt
+mount /dev/sda1 /mnt/efi
+```
 
-Criar as pastas:
-
-mkdir /mnt/efi (J)
-
-mkdir /mnt/boot
-mkdir /mnt/boot/efi
-
-Montar as partições:
-
-mount /dev/sda1 /mnt/efi (J)
-
-mount /dev/sda2 /mnt (já foi montada acima)
-mount /dev/sda1 /mnt/boot
-mount /dev/sda1 /mnt/boot/efi
-Se der erro no mount acima, rodar novamente os comandos abaixo:
-mkdir /mnt/boot/efi
-mount /dev/sda1 /mnt/boot/efi
-
-Selecionar um espelho mais próximo:
-
-vim /etc/pacman.d/mirrorlist
-
-Ver se tem a ufscar e colocar na primeira posição.
-
-Instalar o sistema:
-
-pacstrap /mnt base base-devel linux-zen linux-firmware vim dhcpcd curl wget inetutils iwd zip unzip
-
-inetutils tem o ifconfig
-iwd tem o iwctl para conectar no wifi
-
-
-Gerar o fstab:
-
-genfstab -U -p /mnt >> /mnt/etc/fstab
-
-Verificar se o fstab está correto:
-
-cat /mnt/etc/fstab
-
-arch-chroot /mnt
-
-Habilitar os downloads paralelos no Pacman:
-
+Enable parallel downloads on Pacman:
+```
 vim /etc/pacman.conf
+```
 
-Selecionar um espelho mais próximo:
+Uncomment the line:
+´´´
+vim /etc/pacman.conf
+´´´
 
-vim /etc/pacman.d/mirrorlist
+Use reflector to select the best mirror:
+```
+reflector -c Brazil --save /mnt/etc/pacman.d/mirrorlist
+```
 
-Configurar o fuso horário:
+Install the base packages:
+```
+pacstrap /mnt base base-devel linux-zen linux-firmware vim nano dhcpcd curl wget inetutils iwd zip unzip
+```
 
+Generate fstab:
+```
+genfstab -U -p /mnt >> /mnt/etc/fstab
+```
+
+Check if fstab is ok:
+```
+cat /mnt/etc/fstab
+```
+
+Change to the device:
+```
+arch-chroot /mnt
+```
+
+Use reflector to select the best mirror:
+```
+reflector -c Brazil --save /mnt/etc/pacman.d/mirrorlist
+```
+
+Set time zone:
+```
 ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+```
 
-Sincronizar o relógio com a BIOS:
-
+Run hwclock to generate /etc/adjtime:
+```
 hwclock --systohc 
+```
 
-Conferir a hora:
-
+Check the date:
+```
 date
+```
 
-Configure o teclado:
-
+Set the keyboard layout:
+```
 echo KEYMAP=br-abnt2 >> /etc/vconsole.conf  
+```
 
-Senha para o usuário root:
-
+Set root password:
+```
 passwd 
+```
 
-Criação do usuário:
-
+Create user:
+```
 useradd -m -g users -G wheel,storage,power -s /bin/bash andre
+```
 
-Definir a senha do novo usuário:
-
+Set user password:
+```
 passwd andre
+```
 
-Instalar pacotes necessários para uso do sistema:
+Install important packages to use the system:
+```
+pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog reflector
+```
 
-pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog
-
-Configuração do GRUB:
-
+Set the boot loader:
+```
 pacman -S grub efibootmgr
+```
+Install Grub:
+```
+grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=arch_grub --recheck
+```
 
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck
-
-Se não houver erros, rodar o comando:
-
+Create Grub config:
+```
 grub-mkconfig -o /boot/grub/grub.cfg
+```
 
 Adicionar o usuário ao sudo:
-
+```
 visudo
+```
 
-Descomente a linha abaixo e salve:
-
+Uncomment the following line:
+```
 “%wheel ALL=(ALL:ALL) ALL”
+```
 
-Reiniciar a máquina:
-
+Restart the system:
+```
 exit
 reboot
+```
 
-Habilitar o iwd (para conectar pelo wifi):
-
+Enable iwd:
+```
 systemctl enable --now iwd.service
 iwctl
+```
 
-Verificar se existe conexão com a internet.
-
+Check connection.
+```
 ping -c 3 www.google.com.br
+```
 
-Caso não exista, rodar os comandos para conectar com o wifi ou rodar o comando abaixo:
+Run the following command
+```
+sudo dhcpcd
+```
 
-dhcpcd
-
-Parte gráfica:
-
+Graphics:
+```
 sudo pacman -S xorg-server xorg-xinit xorg-apps mesa
+```
 
-Se a placa de vídeo for Intel:
+Intel:
+```
 sudo pacman -S xf86-video-intel
+```
 
-Se for VM:
-
+Virtual machine:
+```
 sudo pacman -S xf86-video-vesa (J)
 sudo pacman -S virtualbox-guest-utils (R)
+```
+
