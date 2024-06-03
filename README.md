@@ -92,9 +92,9 @@ vim /etc/pacman.conf
 ```
 
 Uncomment the line:
-´´´
+```
 vim /etc/pacman.conf
-´´´
+```
 
 Use reflector to select the best mirror:
 ```
